@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strange Hours — Authorization</title>
+<style>
+  :root{--ground:#0a0c10;--panel:#14181f;--ink:#e9e3d6;--muted:#8b8578;
+    --accent:#c88a3c;--rule:#242a33;--ok:#4c9a6a;--err:#c8563c}
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);margin:0;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .card{width:min(90vw,560px);background:var(--panel);border:1px solid var(--rule);
+    border-radius:14px;padding:34px 32px 30px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .eyebrow{font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin:0 0 14px}
+  h1{font-family:Georgia,"Iowan Old Style",serif;font-size:1.5rem;margin:0 0 6px;
+    letter-spacing:-.01em}
+  p{color:var(--muted);margin:.2em 0 1.1em;font-size:.98rem}
+  .code{display:flex;gap:8px;align-items:stretch;margin:14px 0 6px}
+  .code input{flex:1;background:#0c0f14;border:1px solid var(--rule);color:var(--ink);
+    border-radius:9px;padding:13px 14px;font:600 .92rem ui-monospace,SFMono-Regular,Menlo,monospace;
+    letter-spacing:.02em;overflow:auto}
+  button{background:var(--accent);color:#1a1206;border:0;border-radius:9px;
+    padding:0 18px;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap}
+  button:active{transform:translateY(1px)}
+  .hint{font-size:.86rem;color:var(--muted);margin-top:4px}
+  .ok{color:var(--ok)} .err{color:var(--err)}
+  .foot{margin-top:22px;padding-top:16px;border-top:1px solid var(--rule);
+    color:var(--muted);font-size:.8rem}
+  .badge{display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:var(--ok);margin-right:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="card">
+  <p class="eyebrow">Strange Hours</p>
+  <div id="view"><h1>Authorization callback</h1>
+    <p>Reading the authorization result…</p></div>
+  <div class="foot">Strange Hours · private publishing tool · this page only relays
+    the one-time authorization code back to the owner's local script.</div>
+</div>
+<script>
+(function(){
+  var q = new URLSearchParams(window.location.search);
+  var code = q.get("code"), err = q.get("error"),
+      desc = q.get("error_description"), view = document.getElementById("view");
+  if (code){
+    view.innerHTML =
+      '<h1><span class="badge"></span>Authorized</h1>'+
+      '<p>Copy this one-time code and paste it back into your terminal:</p>'+
+      '<div class="code"><input id="c" readonly value="'+code.replace(/"/g,"&quot;")+'">'+
+      '<button id="b">Copy</button></div>'+
+      '<div class="hint">The code expires in a few minutes. You can close this tab after copying.</div>';
+    var inp = document.getElementById("c"), btn = document.getElementById("b");
+    inp.focus(); inp.select();
+    btn.onclick = function(){
+      inp.select();
+      navigator.clipboard.writeText(inp.value).then(function(){
+        btn.textContent = "Copied ✓";
+      }, function(){ document.execCommand("copy"); btn.textContent="Copied ✓"; });
+    };
+  } else if (err){
+    view.innerHTML = '<h1 class="err">Authorization failed</h1><p>'+
+      err+(desc?(" — "+decodeURIComponent(desc)):"")+'</p>';
+  } else {
+    view.innerHTML = '<h1>Authorization callback</h1>'+
+      '<p>No authorization code in the URL. Start the flow from your local script.</p>';
+  }
+})();
+</script>
+</body>
+</html>
